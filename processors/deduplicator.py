@@ -18,21 +18,23 @@ class Deduplicator:
         union = set1.union(set2)
         return len(intersection) / len(union)
 
-    def deduplicate(self, articles: List[Article], similarity_threshold: float = 0.55) -> List[Article]:
+    def deduplicate(self, articles: List[Article], similarity_threshold: float = 0.45) -> List[Article]:
         unique_articles: List[Article] = []
         seen_urls = set()
         seen_titles_tokens = []
 
         for article in articles:
+            # فحص التكرار بالرابط المباشر أو المعرف
             if article.url in seen_urls or article.canonical_url in seen_urls:
                 continue
 
             tokens = self._tokenize(article.title)
             is_duplicate = False
 
+            # فحص تشابه العنوان مع الأخبار السابقة
             for existing_tokens in seen_titles_tokens:
                 sim = self.jaccard_similarity(tokens, existing_tokens)
-                if sim >= similarity_threshold:
+                if sim >= similarity_threshold: # نسبة تشابه 45% تمنع تكرار أي خبر مشابه من مصدر آخر
                     is_duplicate = True
                     break
 
@@ -42,5 +44,5 @@ class Deduplicator:
                 seen_titles_tokens.append(tokens)
                 unique_articles.append(article)
 
-        logger.info(f"Deduplication complete: {len(articles)} -> {len(unique_articles)} articles.")
+        logger.info(f"Deduplication complete: {len(articles)} -> {len(unique_articles)} unique articles.")
         return unique_articles
