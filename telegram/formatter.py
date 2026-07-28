@@ -3,18 +3,17 @@ from models.article import Article
 from models.summary import AISummary
 from utils.text_sanitizer import sanitize_html
 
-# 1️⃣ ضع رابط Adsterra المباشر الخاص بك هنا
+# 1️⃣ رابط Adsterra المباشر الخاص بك
 ADSTERRA_DIRECT_LINK = "https://www.effectivecpmnetwork.com/awzbbi353?key=16d6ee5ad7058950ed0a6c70dec83b95"
 
-# 2️⃣ ضع مفتاح ShrinkMe API الخاص بك هنا (من موقع ShrinkMe -> قسم Tools -> Developer API)
+# 2️⃣ مفتاح ShrinkMe API الخاص بك
 SHRINKME_API_KEY = "2801f08b278886e58899df2fef0dad30bdbe1d8d"
 
 def get_shrinkme_url(original_url: str) -> str:
     """تحويل الرابط فورياً إلى رابط ShrinkMe ربحي عبر ميزة Quick Link المضمونة"""
-    if not SHRINKME_API_KEY or SHRINKME_API_KEY in ["2801f08b278886e58899df2fef0dad30bdbe1d8d", "2801f08b278886e58899df2fef0dad30bdbe1d8d"]:
+    if not SHRINKME_API_KEY:
         return original_url
     
-    # صيغة Quick Link الرسمية لموقع ShrinkMe
     encoded_url = urllib.parse.quote(original_url)
     return f"https://shrinkme.io/st?api={SHRINKME_API_KEY}&url={encoded_url}"
 
