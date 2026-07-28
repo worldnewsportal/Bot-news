@@ -2,16 +2,21 @@ name: Automated AI Telegram News Bot
 
 on:
   schedule:
-    # Runs every 10 hours
+    # يعمل تلقائياً كل 10 ساعات
     - cron: '0 */10 * * *'
-  workflow_dispatch:
+  workflow_dispatch: # يسمح بالتشغيل اليدوي من واجهة GitHub
 
 permissions:
-  contents: write
+  contents: write # صلاحية الكتابة لحفظ الـ Cache تلقائياً
 
 jobs:
   run-news-bot:
     runs-on: ubuntu-latest
+    
+    # حل مشكلة الاستيرادات بتعيين المسار الرئيسي للبايثون
+    env:
+      PYTHONPATH: .
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -34,14 +39,34 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "requirements.txt not found, installing core dependencies directly..."
+            pip install aiohttp feedparser beautifulsoup4 pydantic pytest pytest-asyncio
+          fi
+
+      - name: Ensure Package Init Files Exist
+        run: |
+          mkdir -p data tests config models collectors processors ai telegram cache utils
+          for dir in config models collectors processors ai telegram cache utils tests; do
+            touch "$dir/__init__.py"
+          done
+          if [ ! -f data/published_cache.json ]; then
+            echo '{"published_ids": []}' > data/published_cache.json
+          fi
 
       - name: Run Unit Tests
         run: |
-          pytest tests/
+          if [ -d tests ] && [ "$(ls -A tests)" ]; then
+            python -m pytest tests/
+          else
+            echo "No test files found, skipping unit tests step."
+          fi
 
       - name: Run News Bot Pipeline
         env:
+          PYTHONPATH: .
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -57,5 +82,4 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add data/published_cache.json
-          git commit -m "auto: update published cache [skip ci]" || echo "No changes to commit"
-          git push
+          git diff-index --quiet HEAD || (git commit -m "auto: update published cache [skip ci]" && git push)
