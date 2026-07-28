@@ -8,27 +8,18 @@ from utils.logger import logger
 SYSTEM_PROMPT = """
 You are an expert international news editor and translator.
 Analyze the provided news article and generate a COMPREHENSIVE, DETAILED, and IN-DEPTH dual-language summary.
+Please summarize in Arabic and English. 
 
-Return ONLY a valid JSON object matching this EXACT schema:
-{
-  "title_en": "Professional concise English headline",
-  "title_ar": "عنوان خبري احترافي ودقيق باللغة العربية",
-  "summary_en": "Comprehensive detailed 150-250 word summary covering all facts, background context, and key developments in clear professional English.",
-  "summary_ar": "ملخص صحفي تفصيلي وافي ومعمق (150-250 كلمة) يغطي كافة الحقائق والتفاصيل والسياق باللغة العربية السليمة.",
-  "key_points_en": ["Detailed point 1 in English", "Detailed point 2 in English", "Detailed point 3 in English"],
-  "key_points_ar": ["نقطة تفصيلية 1 بالعربية", "نقطة تفصيلية 2 بالعربية", "نقطة تفصيلية 3 بالعربية"],
-  "why_it_matters_en": "In-depth explanation of the global, geopolitical, economic, or technological impact in English.",
-  "why_it_matters_ar": "شرح تفصيلي لأهمية الخبر والتأثير الجيوسياسي أو الاقتصادي أو التقني باللغة العربية.",
-  "category_en": "Technology / Business / Politics / Science / Crypto / Health / Climate",
-  "category_ar": "تكنولوجيا / اقتصاد / سياسة / علوم / عملات رقمية / صحة / مناخ",
-  "country": "Primary region/country affected",
-  "keywords": ["Hashtag1", "Hashtag2", "Hashtag3"]
-}
+Required Fields:
+- title_en & title_ar: Concise headlines in English and Arabic.
+- summary_en & summary_ar: Detailed 150-250 word summaries covering all background and facts.
+- key_points_en & key_points_ar: 3 to 5 key takeaway bullet points in both languages.
+- why_it_matters_en & why_it_matters_ar: In-depth impact analysis in both languages.
+- category_en & category_ar: News category in both languages.
+- country: Main region/country affected.
+- keywords: 3 to 5 relevant tags/hashtags.
 
-Rules:
-- Make summaries rich, thorough, and highly detailed (never short or brief).
-- Provide accurate translations without omitting context.
-- Do NOT hallucinate names or figures.
+Never invent facts or hallucinate numbers/names.
 """
 
 class AIRouter:
@@ -37,11 +28,11 @@ class AIRouter:
         self.gemini_key = settings.GEMINI_API_KEY or settings.GOOGLE_AI_API_KEY
         self.openrouter_key = settings.OPENROUTER_API_KEY
 
-        # أسماء نماذج جوميناي الرسمية المستقرة والمؤكدة 100% في Google AI Studio API
+        # أحدث نماذج جوميناي عبر مكتبة Google GenAI SDK
         self.google_models = [
-            "gemini-1.5-flash",
-            "gemini-2.0-flash",
-            "gemini-1.5-pro"
+            "gemini-2.5-flash",
+            "gemini-2.5-flash-lite",
+            "gemini-1.5-flash"
         ]
 
         self.openrouter_models = [
@@ -51,18 +42,18 @@ class AIRouter:
         ]
 
     async def summarize_article(self, text: str) -> AISummary:
-        # 1️⃣ تجربة نماذج جوجل المستقرة الرسمية
+        # 1️⃣ التجربة باستخدام المكتبة الرسمية الجديدة لـ Google GenAI
         if self.gemini_key:
             for model_name in self.google_models:
                 try:
-                    provider = GeminiProvider(self.gemini_key, self.session, model_name=model_name)
+                    provider = GeminiProvider(api_key=self.gemini_key, model_name=model_name)
                     res = await provider.summarize(text, SYSTEM_PROMPT)
-                    logger.info(f"Successfully summarized article using Google Gemini [{model_name}]")
+                    logger.info(f"Successfully summarized article using Google GenAI SDK [{model_name}]")
                     return res
                 except Exception as e:
-                    logger.warning(f"Google model [{model_name}] failed: {e}. Trying next model...")
+                    logger.warning(f"Google GenAI SDK [{model_name}] failed: {e}. Trying next model...")
 
-        # 2️⃣ التجربة عبر OpenRouter عند اللزوم
+        # 2️⃣ الانتقال عبر OpenRouter عند اللزوم
         if self.openrouter_key:
             logger.info("Falling back to OpenRouter free models...")
             provider = OpenRouterProvider(self.openrouter_key, self.session)
@@ -75,7 +66,7 @@ class AIRouter:
                 except Exception as e:
                     logger.warning(f"OpenRouter model [{model_id}] failed: {e}")
 
-        # 3️⃣ ملخص طوارئ للهيكل في حال فشل جميع الاتصالات
+        # 3️⃣ ملخص طوارئ للهيكل في حال فشل جميع النماذج
         logger.error("All AI providers failed. Returning emergency structural summary.")
         return AISummary(
             title_en=text[:80],
