@@ -6,23 +6,29 @@ from config.settings import settings
 from utils.logger import logger
 
 SYSTEM_PROMPT = """
-Analyze the news article and return ONLY a valid JSON object containing dual-language fields (English and Arabic).
-Match this exact JSON schema:
+You are an expert international news editor and translator.
+Analyze the provided news article and generate a COMPREHENSIVE, DETAILED, and IN-DEPTH dual-language summary.
+
+Return ONLY a valid JSON object matching this EXACT schema:
 {
   "title_en": "Professional concise English headline",
   "title_ar": "عنوان خبري احترافي ودقيق باللغة العربية",
-  "summary_en": "Accurate 100-150 word summary in English",
-  "summary_ar": "ملخص خبري صحفي دقيق ومترجم باللغة العربية (100-150 كلمة)",
-  "key_points_en": ["Point 1 in English", "Point 2 in English", "Point 3 in English"],
-  "key_points_ar": ["نقطة 1 بالعربية", "نقطة 2 بالعربية", "نقطة 3 بالعربية"],
-  "why_it_matters_en": "Context and impact in English",
-  "why_it_matters_ar": "أهمية الخبر وسياقه باللغة العربية",
-  "category_en": "Category in English",
-  "category_ar": "التصنيف بالعربية",
-  "country": "Primary region/country",
+  "summary_en": "Comprehensive detailed 150-250 word summary covering all facts, background context, and key developments in clear professional English.",
+  "summary_ar": "ملخص صحفي تفصيلي وافي ومعمق (150-250 كلمة) يغطي كافة الحقائق والتفاصيل والسياق باللغة العربية السليمة.",
+  "key_points_en": ["Detailed point 1 in English", "Detailed point 2 in English", "Detailed point 3 in English"],
+  "key_points_ar": ["نقطة تفصيلية 1 بالعربية", "نقطة تفصيلية 2 بالعربية", "نقطة تفصيلية 3 بالعربية"],
+  "why_it_matters_en": "In-depth explanation of the global, geopolitical, economic, or technological impact in English.",
+  "why_it_matters_ar": "شرح تفصيلي لأهمية الخبر والتأثير الجيوسياسي أو الاقتصادي أو التقني باللغة العربية.",
+  "category_en": "Technology / Business / Politics / Science / Crypto / Health / Climate",
+  "category_ar": "تكنولوجيا / اقتصاد / سياسة / علوم / عملات رقمية / صحة / مناخ",
+  "country": "Primary region/country affected",
   "keywords": ["Hashtag1", "Hashtag2", "Hashtag3"]
 }
-Never invent facts or hallucinate numbers/names.
+
+Rules:
+- Make summaries rich, thorough, and highly detailed (never short or brief).
+- Provide accurate translations without omitting context.
+- Do NOT hallucinate names or figures.
 """
 
 class AIRouter:
@@ -31,22 +37,21 @@ class AIRouter:
         self.gemini_key = settings.GEMINI_API_KEY or settings.GOOGLE_AI_API_KEY
         self.openrouter_key = settings.OPENROUTER_API_KEY
 
-        # أرخص وأسرع 3 نماذج مجانية مباشرة من Google AI Studio
+        # أسماء نماذج جوميناي الرسمية المستقرة والمؤكدة 100% في Google AI Studio API
         self.google_models = [
-            "gemini-2.5-flash-lite",  # الخيار 1: الأسرع والأخف مجاناً 30RPM
-            "gemini-2.5-flash",       # الخيار 2: المتوازن عالي الدقة 15RPM
-            "gemini-1.5-flash-8b"     # الخيار 3: النموذج المصغر عالي السرعة
+            "gemini-1.5-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-pro"
         ]
 
-        # أرخص 3 نماذج مجانية من OpenRouter كبديل طوارئ
         self.openrouter_models = [
-            "openrouter/free",                       # الموجه الذكي التلقائي لأفضل نموذج مجاني متاح
-            "meta-llama/llama-3.3-70b-instruct:free", # نموذج Llama 3.3 المجاني
-            "google/gemma-2-9b-it:free"               # نموذج Gemma 2 المجاني
+            "openrouter/free",
+            "meta-llama/llama-3.3-70b-instruct:free",
+            "google/gemma-2-9b-it:free"
         ]
 
     async def summarize_article(self, text: str) -> AISummary:
-        # 1️⃣ المحاولة أولاً مع أرخص 3 نماذج من جوجل بالترتيب
+        # 1️⃣ تجربة نماذج جوجل المستقرة الرسمية
         if self.gemini_key:
             for model_name in self.google_models:
                 try:
@@ -55,9 +60,9 @@ class AIRouter:
                     logger.info(f"Successfully summarized article using Google Gemini [{model_name}]")
                     return res
                 except Exception as e:
-                    logger.warning(f"Google model [{model_name}] failed/quota: {e}. Trying next model...")
+                    logger.warning(f"Google model [{model_name}] failed: {e}. Trying next model...")
 
-        # 2️⃣ الانتقال لأرخص 3 نماذج في OpenRouter إذا انتهت حصة جوجل
+        # 2️⃣ التجربة عبر OpenRouter عند اللزوم
         if self.openrouter_key:
             logger.info("Falling back to OpenRouter free models...")
             provider = OpenRouterProvider(self.openrouter_key, self.session)
@@ -70,19 +75,19 @@ class AIRouter:
                 except Exception as e:
                     logger.warning(f"OpenRouter model [{model_id}] failed: {e}")
 
-        # 3️⃣ ملخص طوارئ للهيكل في حال توقف جميع النماذج لتجنب توقف البوت
+        # 3️⃣ ملخص طوارئ للهيكل في حال فشل جميع الاتصالات
         logger.error("All AI providers failed. Returning emergency structural summary.")
         return AISummary(
             title_en=text[:80],
             title_ar=text[:80],
-            summary_en=text[:250] + "...",
-            summary_ar=text[:250] + "...",
+            summary_en=text[:300] + "...",
+            summary_ar=text[:300] + "...",
             key_points_en=["Detailed AI summary temporarily unavailable."],
             key_points_ar=["التلخيص التفصيلي غير متاح حالياً."],
             why_it_matters_en="Significant development in international news.",
             why_it_matters_ar="تطور هام في الأخبار العالمية.",
-            category_en="Other",
-            category_ar="أخرى",
+            category_en="General",
+            category_ar="عام",
             country="Global",
             keywords=["News", "Update"]
         )
