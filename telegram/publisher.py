@@ -17,8 +17,8 @@ class TelegramPublisher:
             logger.error("Telegram token or chat ID missing.")
             return False
 
-        # الاتصال بـ ShrinkMe وجلب الرابط المربح تلقائياً
-        text = await TelegramFormatter.format_message(article, summary, self.session)
+        # تنسيق النص وإضافة روابط ShrinkMe و Adsterra
+        text = TelegramFormatter.format_message(article, summary)
         
         # Try sendPhoto first
         photo_url = f"https://api.telegram.org/bot{self.token}/sendPhoto"
