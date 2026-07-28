@@ -35,7 +35,7 @@ async def main():
         logger.info(f"Total raw articles collected: {len(raw_articles)}")
 
         # Filter already published
-        un published_articles = [a for a in raw_articles if not cache_manager.is_published(a.id)]
+        unpublished_articles = [a for a in raw_articles if not cache_manager.is_published(a.id)]
         logger.info(f"Articles after cache filtering: {len(unpublished_articles)}")
 
         # Step 2: Deduplicate
