@@ -1,40 +1,32 @@
 import json
 import re
-from google import genai
-from google.genai import types
+import aiohttp
 from models.summary import AISummary
 from utils.logger import logger
 
 class GeminiProvider:
-    def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash"):
+    def __init__(self, api_key: str, session: aiohttp.ClientSession, model_name: str = "gemini-1.5-flash"):
         self.api_key = api_key
+        self.session = session
         self.model_name = model_name
-        # استخدام المكتبة الرسمية الحديثة الموحدة من جوجل
-        self.client = genai.Client(api_key=self.api_key)
+        self.endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent"
 
     async def summarize(self, text: str, prompt: str) -> AISummary:
-        full_prompt = f"{prompt}\n\nArticle Text:\n{text}"
-        
-        # ربط Pydantic Schema مباشرة بمكتبة جوجل لضمان جودة الهيكل المزدوج
-        config = types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=AISummary,
-            temperature=0.2
-        )
+        url = f"{self.endpoint}?key={self.api_key}"
+        payload = {
+            "contents": [{"parts": [{"text": f"{prompt}\n\nArticle Text:\n{text}"}]}],
+            "generationConfig": {"response_mime_type": "application/json"}
+        }
 
-        # استدعاء غير متزامن باستخدام client.aio الحديث
-        response = await self.client.aio.models.generate_content(
-            model=self.model_name,
-            contents=full_prompt,
-            config=config
-        )
-
-        # إذا ارجعت المكتبة الكائن جاهزاً ومترجماً
-        if hasattr(response, 'parsed') and response.parsed:
-            return response.parsed
-        
-        # في حال إرجاع نص خام مفكك
-        raw_text = response.text
-        clean_json = re.sub(r'```(?:json)?\s*|\s*```', '', raw_text).strip()
-        parsed = json.loads(clean_json)
-        return AISummary(**parsed)
+        async with self.session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+            if resp.status != 200:
+                res_text = await resp.text()
+                raise Exception(f"Gemini [{self.model_name}] error status {resp.status}: {res_text}")
+            
+            data = await resp.json()
+            raw_json = data["candidates"][0]["content"]["parts"][0]["text"]
+            
+            # تنظيف علامات Markdown (```json) لتجنب أخطاء القراءة
+            clean_json = re.sub(r'```(?:json)?\s*|\s*```', '', raw_json).strip()
+            parsed = json.loads(clean_json)
+            return AISummary(**parsed)
