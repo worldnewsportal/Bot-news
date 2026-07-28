@@ -6,14 +6,22 @@ from config.settings import settings
 from utils.logger import logger
 
 SYSTEM_PROMPT = """
-Analyze the article and return ONLY a valid JSON object with these exact keys:
-- title: Concise professional headline
-- summary: Detailed accurate summary (150-300 words)
-- key_points: Array of 3-5 key bullet points
-- why_it_matters: Impact & significance
-- category: One of [Technology, Artificial Intelligence, Politics, Business, Economy, Finance, Science, Space, Health, Cybersecurity, Gaming, Crypto, Climate, Education, Sports, Entertainment, Other]
-- country: Main region/country affected
-- keywords: Array of 3-5 tags
+Analyze the news article and return ONLY a valid JSON object containing dual-language fields (English and Arabic).
+Match this exact JSON schema:
+{
+  "title_en": "Professional concise English headline",
+  "title_ar": "عنوان خبري احترافي ودقيق باللغة العربية",
+  "summary_en": "Accurate 100-150 word summary in English",
+  "summary_ar": "ملخص خبري صحفي دقيق ومترجم باللغة العربية (100-150 كلمة)",
+  "key_points_en": ["Point 1 in English", "Point 2 in English", "Point 3 in English"],
+  "key_points_ar": ["نقطة 1 بالعربية", "نقطة 2 بالعربية", "نقطة 3 بالعربية"],
+  "why_it_matters_en": "Context and impact in English",
+  "why_it_matters_ar": "أهمية الخبر وسياقه باللغة العربية",
+  "category_en": "Category in English",
+  "category_ar": "التصنيف بالعربية",
+  "country": "Primary region/country",
+  "keywords": ["Hashtag1", "Hashtag2", "Hashtag3"]
+}
 Never invent facts or hallucinate numbers/names.
 """
 
