@@ -1,0 +1,36 @@
+from typing import Dict, List, Any
+
+# Map of sources, RSS URLs, and Credibility Weights (1.0 to 3.0)
+NEWS_SOURCES: List[Dict[str, Any]] = [
+    {"name": "Reuters", "url": "https://www.reutersagency.com/feed/?best-topics=top-news&post_type=best", "credibility": 3.0},
+    {"name": "AP News", "url": "https://news.google.com/rss/search?q=when:24h+allinurl:apnews.com&hl=en-US&gl=US&ceid=US:en", "credibility": 3.0},
+    {"name": "BBC News", "url": "http://feeds.bbci.co.uk/news/rss.xml", "credibility": 2.8},
+    {"name": "CNN", "url": "http://rss.cnn.com/rss/edition.rss", "credibility": 2.5},
+    {"name": "Bloomberg", "url": "https://news.google.com/rss/search?q=when:24h+site:bloomberg.com&hl=en-US&gl=US&ceid=US:en", "credibility": 2.9},
+    {"name": "Financial Times", "url": "https://www.ft.com/rss/home/uk", "credibility": 2.8},
+    {"name": "The Guardian", "url": "https://www.theguardian.com/world/rss", "credibility": 2.6},
+    {"name": "NPR", "url": "https://feeds.npr.org/1001/rss.xml", "credibility": 2.6},
+    {"name": "Deutsche Welle", "url": "https://rss.dw.com/rdf/rss-en-all", "credibility": 2.5},
+    {"name": "Al Jazeera", "url": "https://www.aljazeera.com/xml/rss/all.xml", "credibility": 2.5},
+    {"name": "TechCrunch", "url": "https://techcrunch.com/feed/", "credibility": 2.7},
+    {"name": "The Verge", "url": "https://www.theverge.com/rss/index.xml", "credibility": 2.5},
+    {"name": "Ars Technica", "url": "http://feeds.arstechnica.com/arstechnica/index", "credibility": 2.7},
+    {"name": "Wired", "url": "https://www.wired.com/feed/rss", "credibility": 2.6},
+    {"name": "MIT Technology Review", "url": "https://www.technologyreview.com/feed/", "credibility": 2.9},
+    {"name": "Nature", "url": "https://www.nature.com/nature.rss", "credibility": 3.0},
+    {"name": "Science Magazine", "url": "https://www.science.org/rss/news_current.xml", "credibility": 3.0},
+    {"name": "NASA", "url": "https://www.nasa.gov/news-release/feed/", "credibility": 2.9},
+    {"name": "ESA", "url": "https://www.esa.int/rssfeed/Our_Activities/Space_News", "credibility": 2.8},
+    {"name": "WHO", "url": "https://www.who.int/feeds/entity/mediacentre/news/en/rss.xml", "credibility": 2.9},
+    {"name": "OpenAI Blog", "url": "https://openai.com/news/rss.xml", "credibility": 3.0},
+    {"name": "Google AI Blog", "url": "https://blog.research.google/feeds/posts/default", "credibility": 2.9},
+    {"name": "Microsoft Blog", "url": "https://blogs.microsoft.com/feed/", "credibility": 2.8},
+    {"name": "Anthropic News", "url": "https://news.google.com/rss/search?q=when:24h+site:anthropic.com&hl=en-US&gl=US&ceid=US:en", "credibility": 3.0},
+    {"name": "NVIDIA News", "url": "https://nvidianews.nvidia.com/releases.xml", "credibility": 2.8},
+    {"name": "Cloudflare Blog", "url": "https://blog.cloudflare.com/rss/", "credibility": 2.7},
+    {"name": "GitHub Blog", "url": "https://github.blog/feed/", "credibility": 2.8},
+    {"name": "SecurityWeek", "url": "https://feed.securityweek.com/securityweek", "credibility": 2.8},
+    {"name": "BleepingComputer", "url": "https://www.bleepingcomputer.com/feed/", "credibility": 2.7},
+    {"name": "CoinDesk", "url": "https://www.coindesk.com/arc/outboundfeeds/rss/", "credibility": 2.5},
+    {"name": "Cointelegraph", "url": "https://cointelegraph.com/rss", "credibility": 2.4}
+]
