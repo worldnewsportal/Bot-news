@@ -7,11 +7,11 @@ from utils.text_sanitizer import sanitize_html
 ADSTERRA_DIRECT_LINK = "https://www.effectivecpmnetwork.com/awzbbi353?key=16d6ee5ad7058950ed0a6c70dec83b95"
 
 # 2️⃣ الوسيلة الثانية: مفتاح API لموقع اختصار الروابط (مثل ShrinkMe.io) - اتركه فارغاً إذا لم ترغب باستخدامه
-SHRINKME_API_KEY = "ضع_API_KEY_الخاص_بموقع_الروابط_هنا"
+SHRINKME_API_KEY = "2801f08b278886e58899df2fef0dad30bdbe1d8d"
 
 def make_monetized_link(original_url: str) -> str:
     """تحويل رابط الخبر إلى رابط اختصار ربحي"""
-    if not SHRINKME_API_KEY or SHRINKME_API_KEY == "ضع_API_KEY_الخاص_بموقع_الروابط_هنا":
+    if not SHRINKME_API_KEY or SHRINKME_API_KEY == "2801f08b278886e58899df2fef0dad30bdbe1d8d":
         return original_url
     encoded_url = urllib.parse.quote(original_url)
     return f"https://shrinkme.io/api?api={SHRINKME_API_KEY}&url={encoded_url}"
